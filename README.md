@@ -21,7 +21,7 @@ Too often, senior team members are approached with incomplete context, leading t
 
 ## 📦 How to Use
 
-1. Open the `index.html` file in any modern browser.
+1. Open https://github.com/skodilkar/dev_support_request_wizard in your browser.
 2. Fill in the steps with as much detail as possible.
 3. Add your name in the developer's name input who is requesting support and the email address of your manager whom you are seeking help with.
 4. Click **Submit** to trigger your email client with a formatted summary.
