@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Developer Support Request Wizard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-50 text-gray-800">
+    <div class="max-w-2xl mx-auto mt-10">
+      <h1 class="text-3xl font-bold mb-4">Griffyn Developer Support Request Wizard</h1>
+
+      <div class="mb-6">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Your Name</label>
+        <input
+          id="developerName"
+          type="text"
+          placeholder="Enter your full name"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring focus:border-blue-300"
+        />
+      </div>
+        <div class="mb-6">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Support Request Sent to Email</label>
+        <input
+          id="seniorEmail"
+          type="email"
+          placeholder="Enter senior email who will receive this request."
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring focus:border-blue-300"
+        />
+      </div>
+
+      <div id="wizard" class="bg-white p-6 rounded-xl shadow">
+        <h2 id="step-title" class="text-xl font-semibold mb-2">Step Title</h2>
+        <p id="guidance" class="text-sm text-gray-600 mb-4">Step guidance here</p>
+        <div id="questions" class="space-y-6"></div>
+        <div class="mt-6 flex justify-between">
+          <button id="back" class="bg-gray-300 px-4 py-2 rounded disabled:opacity-50" disabled>Back</button>
+          <div>
+            <button id="next" class="bg-blue-600 text-white px-4 py-2 rounded mr-2">Next</button>
+            <button id="submit" class="bg-green-600 text-white px-4 py-2 rounded hidden">Submit</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+  const steps = [
+    {
+      title: "🔍 Step 1: Self-Diagnose",
+      guidance: "Ensure you understand the problem clearly before escalating.",
+      questions: [
+        { prompt: "What exactly is the issue?", placeholder: "Briefly describe the issue." },
+        { prompt: "When and how did it occur?", placeholder: "E.g., After deploying version 2.3.4 on staging." },
+        { prompt: "Can you reproduce it consistently?", placeholder: "Steps to reproduce, if any." }
+      ]
+    },
+    {
+      title: "🧪 Step 2: Initial Troubleshooting",
+      guidance: "Describe your efforts so far.",
+      questions: [
+        { prompt: "What have you tried already to fix or investigate it?", placeholder: "E.g., Checked logs, added print statements, used debugger." },
+        { prompt: "Did you check documentation, code comments, logs, and debugging tools?", placeholder: "Mention any docs, README, or past tickets you reviewed." }
+      ]
+    },
+    {
+      title: "🤝 Step 3: Collaborate with Team",
+      guidance: "Identify what's blocking you and where help is needed.",
+      questions: [
+        { prompt: "Have you discussed this with the senior developer?", placeholder: "Name and outcome of that discussion." },
+        { prompt: "Posted the question in your team channel?", placeholder: "Mention the channel and any replies you got." },
+        { prompt: "Consulted a peer who worked on a similar feature?", placeholder: "Who did you speak to and what was their input?" },
+        { prompt: "What kind of support do you expect?", placeholder: "E.g., decision-making, code review, access." }
+      ]
+    },
+    {
+      title: "🧠 Step 4: Reflect on Solutions",
+      guidance: "Suggest what should be done next.",
+      questions: [
+        { prompt: "What are the possible options to move forward?", placeholder: "List potential fixes or workarounds." },
+        { prompt: "What would you do if you were in the team lead's position?", placeholder: "Describe the trade-offs you would consider." }
+      ]
+    },
+    {
+      title: "🛠 Step 5: Final context for Support Request",
+      guidance: "Anything else your lead should know?",
+      questions: [
+        { prompt: "Is there anything else worth sharing?", placeholder: "Optional context or notes." }
+      ]
+    }
+  ];
+
+  let stepIndex = 0;
+  const responses = steps.map(step => step.questions.map(() => ""));
+
+  function renderStep() {
+    const step = steps[stepIndex];
+    document.getElementById("step-title").textContent = step.title;
+    document.getElementById("guidance").textContent = step.guidance;
+    const container = document.getElementById("questions");
+    container.innerHTML = "";
+
+    step.questions.forEach((q, idx) => {
+      const block = document.createElement("div");
+      const savedValue = responses[stepIndex][idx] || "";
+      block.innerHTML = `
+        <label class="block text-sm font-medium text-gray-700 mb-1">${q.prompt}</label>
+        <textarea
+          class="w-full p-2 border border-gray-300 rounded"
+          placeholder="${q.placeholder}"
+          data-qindex="${idx}"
+          rows="2"
+        >${savedValue}</textarea>
+        <p class="text-xs text-gray-500 mt-1">Please provide context or detail relevant to your experience.</p>
+      `;
+      container.appendChild(block);
+    });
+
+    document.getElementById("back").disabled = stepIndex === 0;
+    document.getElementById("next").classList.toggle("hidden", stepIndex >= steps.length - 1);
+    document.getElementById("submit").classList.toggle("hidden", stepIndex < steps.length - 1);
+  }
+
+  function collectResponses() {
+    const areas = document.querySelectorAll("textarea");
+    areas.forEach(a => {
+      const qIndex = parseInt(a.dataset.qindex);
+      responses[stepIndex][qIndex] = a.value.trim();
+    });
+  }
+
+  document.getElementById("next").onclick = () => {
+    collectResponses();
+    if (responses[stepIndex].some(r => r !== "")) {
+      stepIndex++;
+      renderStep();
+    } else {
+      alert("Please fill in at least one response to proceed.");
+    }
+  };
+
+  document.getElementById("back").onclick = () => {
+    collectResponses();
+    stepIndex--;
+    renderStep();
+  };
+
+document.getElementById("submit").onclick = () => {
+  collectResponses();
+  const devName = document.getElementById("developerName").value.trim();
+  const senEmail = document.getElementById("seniorEmail").value.trim();
+
+  if (!devName) {
+    alert("Please enter your name before submitting.");
+    return;
+  }
+
+  if (!senEmail) {
+    alert("Please enter senior's email before submitting.");
+    return;
+  }
+  
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailPattern.test(senEmail)) {
+    alert("Please enter a valid email address.");
+    return;
+  }
+  
+  
+
+  const lines = [];
+  lines.push("Hello sir/ma'am,");
+  lines.push("");
+  lines.push("Following is developer support request. Please review and do the needful.");
+  lines.push(`Developer name: ${devName}`);
+  lines.push("");
+  lines.push("Summary as below:");
+  lines.push("");
+
+  steps.forEach((step, i) => {
+    lines.push(`${step.title}`);
+    responses[i].forEach((resp, j) => {
+      const prompt = step.questions[j].prompt;
+      lines.push(`- ${prompt}: ${resp || "(no input)"}`);
+    });
+    lines.push("");
+  });
+
+  const body = encodeURIComponent(lines.join("\n"));
+  const subject = encodeURIComponent("Developer Support Request");
+
+  const mailtoLink = `mailto:${senEmail}?subject=${subject}&body=${body}`;
+  window.location.href = mailtoLink;
+};
+
+
+  renderStep();
+</script>
+
+  </body>
+</html>
+
